@@ -4,19 +4,30 @@ import * as S from "./main.styled";
 function MainPage() {
     const [searchUser, setSearchUser] = useState("");
     const [foundUsers, setFoundUsers] = useState([]);
+    const [page, setPage] = useState(1); // Загрузка начиная с первой страницы
+    const userPerPage = 20; // Константа для вызова только 20 пользователей
 
-    const handleSearch = async () => {
+    const handleSearch = async (pageNum) => {
         if (searchUser) {
             try {
                 const response = await fetch(
-                    `https://api.github.com/search/users?q=${searchUser}`,
+                    `https://api.github.com/search/users?q=${searchUser}&per_page=${userPerPage}&page=${pageNum}`,
                 );
                 const data = await response.json();
-                setFoundUsers(data.items);
+                console.log(data);
+                setFoundUsers([...foundUsers, ...data.items]);
             } catch (error) {
                 console.error("Error fetching data:", error);
             }
         }
+    };
+
+    // Функция для загрузки следующих 20 пользователей
+    const handleLoadMore = async () => {
+        const step = 1;
+        const nextPage = page + step;
+        setPage(nextPage);
+        await handleSearch(nextPage);
     };
 
     return (
@@ -31,19 +42,25 @@ function MainPage() {
                 />
                 <span />
                 <S.SearchButton type="button" onClick={handleSearch}>
-                    Search
+                    Поиск
                 </S.SearchButton>
             </S.SearchItem>
-            <div>
-                <ul>
+            <S.UserItem>
+                <S.ListOfUsers>
                     {foundUsers.map((user) => (
-                        <li key={user.id}>
-                            <img src={user.avatar_url} alt={user.login} />
-                            {user.login}
-                        </li>
+                        <S.ListItem key={user.id}>
+                            <S.AvatarUser
+                                src={user.avatar_url}
+                                alt={user.login}
+                            />
+                            <S.UserName>{user.login}</S.UserName>
+                        </S.ListItem>
                     ))}
-                </ul>
-            </div>
+                </S.ListOfUsers>
+            </S.UserItem>
+            <S.SearchButton type="button" onClick={handleLoadMore}>
+                Загрузить еще
+            </S.SearchButton>
         </S.MainContainer>
     );
 }
