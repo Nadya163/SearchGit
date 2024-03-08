@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import * as S from "./main.styled";
 
 function MainPage() {
@@ -7,6 +8,7 @@ function MainPage() {
     const [page, setPage] = useState(1); // Загрузка начиная с первой страницы
     const [isLoading, setIsLoading] = useState(false); // Состояние загрузки данных
     const [hasMoreUsers, setHasMoreUsers] = useState(false); // Состояние для определения наличия больше пользователей
+    const [totalUsers, setTotalUsers] = useState(0); // Состояние для общего количества найденных пользователей
     const userPerPage = 20; // Константа для вызова только 20 пользователей
 
     const handleSearch = async () => {
@@ -25,7 +27,9 @@ function MainPage() {
                 );
                 const data = await response.json();
                 setFoundUsers(data.items);
+                console.log(data);
                 setHasMoreUsers(data.total_count > userPerPage);
+                setTotalUsers(data.total_count); // Установка общего количества найденных пользователей
             } catch (error) {
                 console.error("Error fetching data:", error);
             }
@@ -44,6 +48,9 @@ function MainPage() {
                 `https://api.github.com/search/users?q=${searchUser}&per_page=${userPerPage}&page=${nextPage}`,
             );
             const data = await response.json();
+            if (foundUsers.length + data.items.length === data.total_count) {
+                setHasMoreUsers(false);
+            }
             setFoundUsers([...foundUsers, ...data.items]);
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -61,7 +68,14 @@ function MainPage() {
                     value={searchUser}
                     onChange={(e) => setSearchUser(e.target.value)}
                 />
-                <span />
+                <div>
+                    {foundUsers.length > 0 && !isLoading && (
+                        <p>{`Найдено пользователей: ${totalUsers}`}</p>
+                    )}
+                    {!isLoading && searchUser && foundUsers.length === 0 && (
+                        <p>Ничего не найдено</p>
+                    )}
+                </div>
                 <S.SearchButton
                     type="button"
                     onClick={handleSearch}
@@ -73,13 +87,15 @@ function MainPage() {
             <S.UserItem>
                 <S.ListOfUsers>
                     {foundUsers.map((user) => (
-                        <S.ListItem key={user.id}>
-                            <S.AvatarUser
-                                src={user.avatar_url}
-                                alt={user.login}
-                            />
-                            <S.UserName>{user.login}</S.UserName>
-                        </S.ListItem>
+                        <Link to={`/users/${user.login}`} key={user.id}>
+                            <S.ListItem>
+                                <S.AvatarUser
+                                    src={user.avatar_url}
+                                    alt={user.login}
+                                />
+                                <S.UserName>{user.login}</S.UserName>
+                            </S.ListItem>
+                        </Link>
                     ))}
                 </S.ListOfUsers>
             </S.UserItem>
