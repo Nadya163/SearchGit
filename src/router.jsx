@@ -6,7 +6,7 @@ function AppRoutes() {
     return (
         <Routes>
             <Route path="/" element={<MainPage />} />
-            <Route path="/user" element={<User />} />
+            <Route path="/users/:userId" element={<User />} />
         </Routes>
     );
 }
