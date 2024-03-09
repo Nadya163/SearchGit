@@ -16,6 +16,7 @@ export const SearchButton = styled.button`
     background-color: #6495ed;
     color: white;
     font-size: 20px;
+    margin-bottom: 50px;
 `;
 
 // export const Styled = styled.div;
